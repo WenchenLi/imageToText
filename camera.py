@@ -20,7 +20,6 @@ while (True):
     if res:
         for word in res: d.suggest(word)
     cv2.imshow('frame', gray)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    if cv2.waitKey(1) & 0xFF == ord('q'):break
 cap.release()
 cv2.destroyAllWindows()

@@ -58,6 +58,7 @@ class Detector(object):
       er2 = cv2.text.createERFilterNM2(erc2,0.5)
 
       regions = cv2.text.detectRegions(channel,er1,er2)
+      # print regions
       rects = cv2.text.erGrouping(img,channel,[r.tolist() for r in regions])
       #rects = cv2.text.erGrouping(img,gray,[x.tolist() for x in regions], cv2.text.ERGROUPING_ORIENTATION_ANY,'../../GSoC2014/opencv_contrib/modules/text/samples/trained_classifier_erGrouping.xml',0.5)
 
@@ -80,8 +81,21 @@ class Detector(object):
   def getRects(self):
     return self.rects
 
+  def getTextBlocks(self):
+    x1,y1,x2,y2 = float('inf'),float('inf'),0,0
+    for k in self.rects:
+      for r in self.rects[k]:
+        x1_,y1_,w,h   = r
+        x1,y1,x2,y2 = min(x1,x1_),min(y1,y1_),max(x2,x1_+w),max(y2,y1_+h)
+    # cv2.rectangle(self.vis, (x1,y1), (x2,y2), (0, 255, 255), 2)
+    # self.visualize()
+    cropped_img = self.vis[y1:y2,x1:x2]
+    # cv2.imshow('cropped',cropped_img)
+    cv2.imwrite(self.image_path.replace('.jpg','_cropped.jpg'),cropped_img)
+    return x1,y1,x2,y2
+
 if __name__ == '__main__':
-  detector = Detector('data/scenetext01.jpg')
-  detector.detect_char()
-  detector.visualize()
-  print detector.getRects()
+  detector = Detector('data/street.jpg')
+  detector.detect_text(visual=False)
+  # detector.visualize()
+  print detector.getTextBlocks()
