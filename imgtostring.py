@@ -1,4 +1,3 @@
-# handle Image lib compatibility across different os
 try:
     import Image
 except ImportError:
@@ -7,7 +6,7 @@ import pytesseract
 import numpy as np
 import cv2
 box = True
-npimg = cv2.imread('cropped.jpg', 1)
+npimg = cv2.imread('data/street_warped.jpg', 1)
 img = Image.fromarray(npimg)
 res = pytesseract.image_to_string(img, boxes=box)
 if box and res:
