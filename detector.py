@@ -50,9 +50,9 @@ class Detector(object):
 
         # Apply the default cascade classifier to each independent channel
         # (could be done in parallel)
-        print("Extracting Class Specific Extremal Regions from " +
-              str(len(channels)) + " channels ...")
-        print("    (...) this may take a while (...)")
+        # print("Extracting Class Specific Extremal Regions from " +
+        #       str(len(channels)) + " channels ...")
+        # print("    (...) this may take a while (...)")
         for channel in channels:
             erc1 = cv2.text.loadClassifierNM1('text/trained_classifierNM1.xml')
             er1 = cv2.text.createERFilterNM1(
@@ -68,7 +68,7 @@ class Detector(object):
             if visual:
                 for r in range(0, np.shape(rects)[0]):
                     rect = rects[r]
-                    print rect
+                    # print rect
                     self.rects['text'].append(rect)
                     cv2.rectangle(
                         vis, (rect[0], rect[1]), (rect[0] + rect[2],
