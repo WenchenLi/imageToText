@@ -1,10 +1,12 @@
 import numpy as np
 import cv2
-# 'credit for order_points and four_point_transform:pyimagesearch'
+
+
 def sliding_window(stepSize, windowSize):
-	for y in xrange(0, 800, stepSize):
-		for x in xrange(0, 600, stepSize):
-			yield [(x, y),(x,y+windowSize[0]),(x+windowSize[1],y),(x+windowSize[1],y+windowSize[0])]
+    for y in xrange(0, 800, stepSize):
+        for x in xrange(0, 600, stepSize):
+            yield [(x, y), (x, y + windowSize[0]), (x + windowSize[1], y), (x + windowSize[1], y + windowSize[0])]
+
 
 def get_corner_manual(filename):
     pts = []
@@ -45,33 +47,43 @@ def get_corners(filename, threshold, show=False):
     gray = np.float32(gray)
     dst = cv2.cornerHarris(gray, 2, 3, 0.04)
     if show:
-    	img[dst > threshold * dst.max()] = [0, 0, 255]
-       	cv2.imshow('haris', img)
-       	cv2.waitKey()
-    	cv2.imwrite(filename.replace('.jpg', '_corner.jpg'), img)
+        img[dst > threshold * dst.max()] = [0, 0, 255]
+        cv2.imshow('haris', img)
+        cv2.waitKey()
+        cv2.imwrite(filename.replace('.jpg', '_corner.jpg'), img)
     pts = np.where(dst > threshold * dst.max())
-    return zip(pts[0],pts[1])
+    return zip(pts[0], pts[1])
 
-def get_candidate_corners(pts,text_region):
 
-	#given dst from get corners and text_region, get proposed corners 
-	#for the text to warp text region
-	candidates = {'tl':[],'tr':[],'br':[],'bl':[]}
-	x1,y1,x2,y2 = text_region
-	r = min(abs(x2-x1),abs(y1-y2))**.5
-	for p in pts:
-		if x1-r<p[1]<x1 and y2-r <p[0]<y2:candidates['tl'].append(p)
-		elif x2<p[1]<x2+r and y2-r <p[0]<y2:candidates['tr'].append(p)
-		elif x2<p[1]<x2+r and y1 <p[0]<y1+r:candidates['br'].append(p)
-		elif x1-r<p[1]<x1 and y1 <p[0]<y1+r:candidates['bl'].append(p)
-		else:continue
-	for k in candidates:
-		if not candidates[k]:
-			if k=='tl':candidates[k].append((x1,y2))
-			elif k=='tr':candidates[k].append((x2,y2))
-			elif k=='br':candidates[k].append((x2,y1))
-			elif k=='bl':candidates[k].append((x1,y1))
-	return candidates
+def get_candidate_corners(pts, text_region):
+    # given dst from get corners and text_region, get proposed corners
+    # for the text to warp text region
+    candidates = {'tl': [], 'tr': [], 'br': [], 'bl': []}
+    x1, y1, x2, y2 = text_region
+    r = min(abs(x2 - x1), abs(y1 - y2)) ** .5
+    for p in pts:
+        if x1 - r < p[1] < x1 and y2 - r < p[0] < y2:
+            candidates['tl'].append(p)
+        elif x2 < p[1] < x2 + r and y2 - r < p[0] < y2:
+            candidates['tr'].append(p)
+        elif x2 < p[1] < x2 + r and y1 < p[0] < y1 + r:
+            candidates['br'].append(p)
+        elif x1 - r < p[1] < x1 and y1 < p[0] < y1 + r:
+            candidates['bl'].append(p)
+        else:
+            continue
+    for k in candidates:
+        if not candidates[k]:
+            if k == 'tl':
+                candidates[k].append((x1, y2))
+            elif k == 'tr':
+                candidates[k].append((x2, y2))
+            elif k == 'br':
+                candidates[k].append((x2, y1))
+            elif k == 'bl':
+                candidates[k].append((x1, y1))
+    return candidates
+
 
 def get_corners_subpixel(filename):
     img = cv2.imread(filename)
@@ -100,8 +112,10 @@ def get_corners_subpixel(filename):
 
     cv2.imwrite(filename.replace('.jpg', '_corner_sub.jpg'), img)
 
+
 def get_image_pyramids(image):
-	pass
+    pass
+
 
 def order_points(pts):
     # initialzie a list of coordinates that will be ordered
@@ -164,16 +178,37 @@ def four_point_transform(image, pts):
 
 
 if __name__ == '__main__':
-	filename = 'data/scenetext02.jpg'
-	image = cv2.imread(filename,1)
-	warped = four_point_transform(image, np.array([(432, 616), (798, 376), (708, 986), (890, 616)]))
-	cv2.imshow('w',warped)
-	cv2.waitKey(0)
-    # pts =  get_corners('data/scenetext02.jpg',.1,False)
-    # print pts
-    # image = cv2.imread('data/scenetext02.jpg',1)
-    # pts = np.array(pts, dtype = "float32")
-    # warped = four_point_transform(image, pts)
-    # cv2.imshow("Warped", warped)
-    # cv2.imwrite('data/scenetext02.jpg_warped.jpg', warped)
-    # cv2.waitKey(0)
+    try:
+        import Image
+    except ImportError:
+        from PIL import Image
+    import pytesseract
+    filename = 'data_resize/scenetext02.jpg'
+    image = cv2.imread(filename, 1)
+    warped = four_point_transform(image, np.array(get_corner_manual(filename)))
+    npimg = warped
+    img = Image.fromarray(npimg)
+    res = pytesseract.image_to_string(img, boxes=True)
+    print pytesseract.image_to_string(img)
+    res_list = res.split('\n')
+    if res_list:
+        # res_list = res.split('\n')
+        hi, wi = npimg.shape[0], npimg.shape[1]
+        for c in res_list:
+            c = c.split()
+            # print c
+            x1, y1, x2, y2 = int(c[1]), hi - int(c[2]), int(c[3]), int(c[4])
+            # cv2.rectangle(npimg, (x1, y1), (x2, y2), (0, 255, 255), 1)
+            cv2.putText(npimg, c[0], (x1, y1), 0, 1, (0, 255, 0), 2)
+    cv2.imshow("Show", npimg)
+    cv2.imwrite('res.png', npimg)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+# pts =  get_corners('data/scenetext02.jpg',.1,False)
+# print pts
+# image = cv2.imread('data/scenetext02.jpg',1)
+# pts = np.array(pts, dtype = "float32")
+# warped = four_point_transform(image, pts)
+# cv2.imshow("Warped", warped)
+# cv2.imwrite('data/scenetext02.jpg_warped.jpg', warped)
+# cv2.waitKey(0)

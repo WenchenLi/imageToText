@@ -12,29 +12,31 @@ from collections import *
 #TODO1: scale,2: sliding window
 #imagine image is a platue initially, search based on score and search give score feedback, for the area,
 #have char + 1, non -1. 
-filename = 'data_resize/scenetext_segmented_word01.jpg'
+filename = 'data/scenetext03.jpg'
 
 candidate_pts = {}
 bow = defaultdict(list)
-# detector = Detector(filename)
-# detector.detect_text(visual=True)
-# detector.visualize()
-# rects = detector.getRects()['text']
-# rects.append(detector.getTextBlocks())
-# for r in rects:
-#     candidate_pts[tuple(r)] = get_candidate_corners(
-#         get_corners(filename, .01), tuple(r))
-# corners = get_corners(filename, .01)
-pts_gen = sliding_window(100,(128,256))#for sliding window, if true, stiching together
+detector = Detector(filename)
+detector.detect_text(visual=False)
+detector.visualize()
+rects = detector.getRects()['text']
+rects.append(detector.getTextBlocks())
+for r in rects:
+    candidate_pts[tuple(r)] = get_candidate_corners(
+        get_corners(filename, .01), tuple(r))
+corners = get_corners(filename, .01)
+# pts_gen = sliding_window(100,(128,256))#for sliding window, if true, stiching together
 
 string = None
 for i in xrange(100):
-    pts = pts_gen.next()
-    # r = random.choice(candidate_pts.keys())
+    # pts = pts_gen.next()
+    pts =[]
+    r = random.choice(candidate_pts.keys())
     # for k in candidate_pts[r]:
     #     pts.append(random.choice(candidate_pts[r][k]))
-    # print pts
-    # for i in xrange(4): pts.append(random.choice(corners))
+    for i in xrange(4): pts.append(random.choice(corners))
+    print pts
+
     image = cv2.imread(filename, 1)
     pts = np.array(pts, dtype="float32")
     pts_img = image.copy()

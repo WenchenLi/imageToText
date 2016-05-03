@@ -1,0 +1,20 @@
+given text in image, if the text is more like in the scan format, tesseract is pretty good at recognizing all the text correctly and even separate them correctly with the bounding box coordinates
+
+However, if it's in a natural scene, it's pretty hard for tesseract to work perfectly. Therefore a good text detector or text region detector is important.
+
+Another observation is text better be perpendicular to the view to work better.
+
+Given the above obeservation, the goal of this project is:
+1. given an image detect the text regions and crop the text area 
+2. then do image transformation of the text region as a top-down view 
+
+I've tried with several search methods on finding the perspective transformation matrix. The core of this is finding the corners of text region.
+The method I've tried:
+Harris corner detector: first finding all the corners in the image through harris corner detector, then do the randomized search for the four points. This turns out not working so well.it's slow.
+
+
+The other methods I've tried:
+
+sliding window of the image: this turns out works better than search corners through harris corner detector. 
+
+GrabCut: I think it maybe better to separate foreground and background and find top left, top right, bottom left, bottom right pixel coordinates of the foreground mask as the corner detector, but most of the time it's still not stable
